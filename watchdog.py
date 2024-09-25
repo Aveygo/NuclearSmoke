@@ -122,8 +122,8 @@ class WatchDog(threading.Thread):
         if (
             updated > query.updated                                     # If RFS updated the fire
             or time.time() + 60*60 < query.created                      # OR exisiting record expired
-            or abs(query.wind_speed - weather["speed"]) > 3             # OR the wind changed speed
-            or abs(query.wind_direction - weather["direction"]) > 20    # OR the wind changed direction
+            or abs(query.wind_speed - weather["speed"]) > 5             # OR the wind changed speed
+            or abs(query.wind_direction - weather["direction"]) > 40    # OR the wind changed direction
         ):
             print(query.created)
             print(updated > query.updated,time.time() + 60*60 < query.created,abs(query.wind_speed - weather["speed"]) > 3,  abs(query.wind_direction - weather["direction"]) > 20)
