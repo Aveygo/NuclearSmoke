@@ -2,7 +2,7 @@
 import requests, threading, time, re, json
 from datetime import datetime
 from contour import ContourFinder
-from database import Fire, Contour
+from database import Fire, Contour, Meta
 import getgfs, math
 
 class WatchDog(threading.Thread):
@@ -153,6 +153,8 @@ class WatchDog(threading.Thread):
             print(f"Sleeping for {sleep_for} seconds")
             time.sleep(sleep_for)
             self.last_checked = time.time()
+            self.checked.last_seen = self.last_checked
+            self.checked.save()
 
             data = requests.get(self.url).json()
             num_updated_fires = 0
