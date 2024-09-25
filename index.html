@@ -351,10 +351,10 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <span>|</span> Data from <a href="https://www.rfs.nsw.gov.au/fire-information/fires-near-me">RFS</a>'
 }).addTo(map);
 
-fetch('/latest_data.json')
+fetch('https://aveygo.github.io/NuclearSmoke/latest_data.json')
 .then(response => {
     if (!response.ok) {
-        window.location.href = "/panic.html";
+        window.location.href = "https://aveygo.github.io/NuclearSmoke/panic.html";
     }
     return response.json();
 })
@@ -362,7 +362,7 @@ fetch('/latest_data.json')
 
     var now = new Date() / 1000;
     if (now - data.last_updated > 60 * 15) {
-        window.location.href = "/panic.html";
+        window.location.href = "https://aveygo.github.io/NuclearSmoke/panic.html";
     }
     
     for (const [key, value] of Object.entries(data.data)) {
