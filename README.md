@@ -4,7 +4,7 @@
 <h1 align=center><a href="https://aveygo.github.io/NuclearSmoke/">Nuclear Smoke</a></h1>
 <br/>
 
-As a NSW resident, the government really likes to leave us in the dust on bushfire data by preventing the public from accessing critical forecasts and withholding it for commercial use only -> ["Find out how we can support the prosperity and safety of your business in Australia."](http://reg.bom.gov.au/reguser/) which is also under strict licencing agreements.
+As a NSW resident, the government really likes to leave us in the dust on bushfire data by preventing the public from accessing critical forecasts and withholding it for commercial use only -> ["Find out how we can support the prosperity and safety of your business in Australia."](http://reg.bom.gov.au/reguser/) which is also under strict licencing agreements 🤗.
 
 The only place we can have any clue about what is on fire at the moment, is from the NSW Rural Fire Service [(RFS)](https://www.rfs.nsw.gov.au/fire-information/fires-near-me), who seem to be the only good guys in this story.
 
