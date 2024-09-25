@@ -1,0 +1,393 @@
+<head>
+    <title> Nuclear Smoke </title>
+    <meta charset="utf-8">
+    <meta name="description" content="Quick and easy way to view smoke trajectories from bush fires or hazard reductions in NSW. Algorithm is based on nuclear fallout modeling to produce results. Open source, GPLv3, free as long as it stays free">
+    <meta name="robots" content="all">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+</head>
+<body>
+    <div class="wrapper">
+        <div id="nav">
+            <img id="icon" src="static/logo.svg"></img>
+            <div id="header">
+                <h1>Nuclear Smoke - BETA</h1>
+                <h2>Predicting smoke "fallout"</h2>
+            </div>
+            <img id="info" class="icon" src="static/i.svg" onclick="openpopup()" title="Info card"></img>
+            <a href="https://github.com/"><img id="github" class="icon" src="static/github.svg" title="Source code"></a></a>
+            <a href="https://github.com/Aveygo/NuclearSmoke/issues/"><img id="issue" class="icon" src="static/issue.svg" title="Issues & Reports"></a></a>
+        </div>
+        <div id="subheader">
+            <h2>Please visit the <a href="https://www.rfs.nsw.gov.au/fire-information/fires-near-me">RFS</a> for the most up-to-date and complete alerts</h1>
+        </div>
+        <div id="popup" class="hidden">
+            <div id="card">
+                <img id="close" src="static/x.svg" onclick="closepopup()"></img>
+                <img id="icon" src="static/logo.svg"></img>
+                <h1>Nuclear Smoke - LOCAL</h1>
+                <h2>Developed by <a href="https://github.com/Aveygo">Aveygo</a></h2>
+                <b> This site is running locally!</b>
+                <p>
+                    Probably like you, I'm a NSW resident who wants to be as prepared as possible during summer, and 
+                    it's no secret that the hazard burns can be a little annoying at best, and scary at worst.  
+                </p>
+                <p>
+                    This was a little project to raise awareness about what the RFS is up to, 
+                    and to help other feel a little more prepared for the next burn.
+                </p>
+                <p>
+                    God bless, stay safe, and enjoy the summer.
+                </p>
+                <i>This project is under the GPLv3 license <br/> You are free to do whatever you want with the data and project; as long as it stays free and as open as possible.</i>
+            </div>
+        </div>
+        <table id="legend">
+            
+            <tr>
+                <th><div id="green" class="dot"></div></th>
+                <th>0.5 mSv</th>
+                <th><i>Near-by smoker</i></th>
+            </tr>
+            <tr>
+                <th><div id="orange" class="dot"></div></th>
+                <th>2.5 mSv</th>
+                <th><i>Possible asthma risk</i></th>
+            </tr>
+            <tr>
+                <th><div id="red" class="dot"></div></th>
+                <td>6.0 mSv</td>
+                <th><i>Why does the air hurt?</i></th>
+            </tr>
+            
+        </table>
+        <div id="map"></div>
+    </div>
+</body>
+<style>
+
+#legend {
+    position: absolute;
+    bottom: 0;
+    margin: 20px;
+    padding: 4px;
+    background-color: #1b1d1e;
+    color: white;
+    border-radius: 5px;
+    box-shadow: 5px 5px 20px 5px #0000004f;
+
+    z-index: 3;
+    font-weight: 500;
+    text-align:left;
+}
+
+#legend tr {
+    width: 100%;
+}
+
+#legend i {
+    padding-left: 20px;
+    padding-right: 10px;
+    font-weight: 200;
+}
+
+#legend th {
+    font-weight: 500;
+}
+
+#legend .dot {
+    width: 20px;
+    height: 15px;
+    border-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+#legend #green {
+    background-color: green;
+}
+
+#legend #orange {
+    background-color: orange;
+}
+#legend #red {
+    background-color: red;
+}
+
+html, body {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    height: 100%;
+    margin: 0;
+}
+
+.hidden {
+    display: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 3s;
+}
+
+#popup {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #1b1d1ebb;
+    z-index: 4;
+    opacity: 1;
+}
+
+#popup #card {
+    margin: auto;
+    margin-top: 50px;
+    z-index: 5;
+    width: min(40em, 80%);
+    padding-bottom: 50px;
+    background-color: #1b1d1e;
+
+    box-shadow: 5px 5px 20px 5px #0000004f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    border-radius: 2px;
+}
+
+#popup #card #close {
+    min-width: 20px;
+    min-height: 20px;
+    margin-top: 10px;
+    margin-left: calc(100% - 40px);
+    background-color: none;
+    color: white;
+}
+
+#popup #card #icon {
+    height: 150px;
+    aspect-ratio: 1;
+    margin: 20px;
+}
+
+#popup #card h1 {
+    font-size: 2em;
+    line-height: 2em;
+    margin: 0;
+    margin-top: 30px;
+}
+
+#popup #card h2 {
+    font-size: 1em;
+    line-height: 1em;
+    margin: 0;
+    margin-bottom: 30px;
+}
+
+#popup #card b {
+    width: 80%;
+    text-align: center;
+    color: #e36b2b;
+    padding-bottom: 20px;
+}
+
+#popup #card i {
+    width: 80%;
+    text-align: center;
+    color: #e36b2b;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+#popup #card h2 a {
+    font-size: 1em;
+    line-height: 1em;
+    margin: 0;
+    color: white;
+}
+
+#popup #card p {
+    width: 80%;
+    font-weight: 300;
+
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+#nav { 
+    height: 60px;
+    background-color: #1b1d1e;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 2px;
+    padding-right: 20px;
+}
+
+#icon {
+    margin-left: 20px;
+    
+    height: 100%;
+    aspect-ratio: 1;
+}
+
+#header {
+    margin-left: 20px;
+    height: 100%;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    color: white;
+}
+
+#nav .icon {
+    height:1.5em;
+    margin-right: 10px;
+    padding: 4px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+#nav .icon:hover {
+    background-color: #3b3f42;
+}
+
+
+#subheader {
+    height: 1.5em;
+    width: 100%;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    background-color: #e36b2bff;
+    color:#1b1d1e;
+}
+
+#header h1 {
+    font-weight: 800;
+    font-size: 1.5em;
+    line-height: 1.5em;
+    padding: 0;
+    margin: 0;
+}
+
+#header h2 {
+    font-weight: 800;
+    font-size: 1em;
+    line-height: 1em;
+    padding: 0;
+    margin: 0;
+    opacity: 0.7;
+}
+
+#subheader h2 {
+    font-weight: 800;
+    font-size: 0.7em;
+    line-height: 0.7em;
+    padding: 0;
+    margin: 0;
+    margin-top: 0.2em;
+}
+
+#subheader h2 a {
+    background: none;
+	color: inherit;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+    text-decoration: none;
+
+    font-weight: 900;
+    background-color: white;
+    border-radius: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#subheader h2 a:hover {
+    background-color: rgb(191, 93, 40);
+}
+
+#map {
+    flex-grow: 1;
+    z-index: 1;
+}
+
+</style>
+
+<script>
+
+function openpopup() {
+    let popup = document.getElementById("popup");
+    popup.classList.remove("hidden")
+}
+
+function closepopup() {
+    let popup = document.getElementById("popup");
+    popup.classList.add("hidden")
+}
+
+
+var map = L.map('map').setView([ -33.8521, 151.1917], 10);
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <span>|</span> Data from <a href="https://www.rfs.nsw.gov.au/fire-information/fires-near-me">RFS</a>'
+}).addTo(map);
+
+fetch('/latest_data.json')
+.then(response => {
+    if (!response.ok) {
+        window.location.href = "/panic.html";
+    }
+    return response.json();
+})
+.then(data => {
+
+    var now = new Date() / 1000;
+    if (now - data.last_updated > 60 * 15) {
+        window.location.href = "/panic.html";
+    }
+    
+    for (const [key, value] of Object.entries(data.data)) {
+        var marker = L.marker([value.lat, value.long]).addTo(map);
+        marker.bindPopup(`<b>${key}</b>`).openPopup();
+
+        if (value.contours.low) {
+            var polygon = L.polygon(value.contours.low.map(point => [point[0], point[1]]), {color: 'green'}).addTo(map)
+        }
+
+        if (value.contours.med) {
+            var polygon = L.polygon(value.contours.med.map(point => [point[0], point[1]]), {color: 'orange'}).addTo(map)
+        }
+
+        if (value.contours.high) {
+            var polygon = L.polygon(value.contours.high.map(point => [point[0], point[1]]), {color: 'red'}).addTo(map)
+        }
+
+    }
+
+    map.setView([ -33.8521, 151.1917], 10)
+
+})
+.catch(error => {
+    console.error('There was a problem with the fetch operation:', error);
+});
+
+</script>
