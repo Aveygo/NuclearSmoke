@@ -2,13 +2,12 @@
 import requests, threading, time, re, json
 from datetime import datetime
 from contour import ContourFinder
-from database import Fire, Contour, Meta
+from database import Fire, Contour
 import getgfs, math
 
 class WatchDog(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.checked, created = Meta.get_or_create(last_seen=time.time())
         self.check_every = 60 * 5
         self.last_checked = time.time() - self.check_every - 1
         self.url = "https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json"
