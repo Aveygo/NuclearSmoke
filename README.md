@@ -4,7 +4,7 @@
 <h1 align=center><a href="https://aveygo.github.io/NuclearSmoke/">Nuclear Smoke</a></h1>
 <br/>
 
-As a NSW resident, the government really likes to leave us in the dust on bushfire data by preventing the public from accessing critical forecasts and witholding it for commercial use only -> ["Find out how we can support the prosperity and safety of your business in Australia."](http://reg.bom.gov.au/reguser/) which is also under strict licencing agreements.
+As a NSW resident, the government really likes to leave us in the dust on bushfire data by preventing the public from accessing critical forecasts and withholding it for commercial use only -> ["Find out how we can support the prosperity and safety of your business in Australia."](http://reg.bom.gov.au/reguser/) which is also under strict licencing agreements.
 
 The only place we can have any clue about what is on fire at the moment, is from the NSW Rural Fire Service [(RFS)](https://www.rfs.nsw.gov.au/fire-information/fires-near-me), who seem to be the only good guys in this story.
 
@@ -17,7 +17,7 @@ I hope for my tool to be use as freely as possibly, as long as it stays free. If
 1. Install [Python](https://www.python.org/downloads/)
 2. [Download](https://github.com/Aveygo/NuclearSmoke/archive/refs/heads/main.zip) the code
 3. Unzip and open a terminal in the folder (right-click -> open terminal if windows)
-4. Install the requrements with ```pip install -r requirements.txt```
+4. Install the requirements with ```pip install -r requirements.txt```
 5. Run the script with ```python3 main.py```
 6. In your browser, go to ```localhost:8000```
 
