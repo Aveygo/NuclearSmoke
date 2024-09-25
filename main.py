@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-WatchDog().start()
 
 def get_db():
     data = {}
@@ -25,6 +24,7 @@ def get_db():
             
 
         data[fire.title] = {
+            "last_updated": fire.updated,
             "contours": contours,
             "lat" : fire.lat,
             "long": fire.long,
@@ -62,4 +62,5 @@ async def index(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
+    WatchDog().start()
     uvicorn.run(app, host="0.0.0.0", port=8000)

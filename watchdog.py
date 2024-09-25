@@ -2,12 +2,13 @@
 import requests, threading, time, re, json
 from datetime import datetime
 from contour import ContourFinder
-from database import Fire, Contour
+from database import Fire, Contour, Meta
 import getgfs, math
 
 class WatchDog(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
+        self.checked, created = Meta.get_or_create(last_seen=time.time())
         self.check_every = 60 * 5
         self.last_checked = time.time() - self.check_every - 1
         self.url = "https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json"
@@ -105,6 +106,7 @@ class WatchDog(threading.Thread):
             published = published,
             category = category,
             updated = updated,
+            created = time.time(),
             level = alert_type,
             size_ha = size_ha,
             under_control = under_control,
@@ -120,7 +122,7 @@ class WatchDog(threading.Thread):
         
         if (
             updated > query.updated                                     # If RFS updated the fire
-            or time.time() + 60*10 > query.updated                      # OR we havent checked in 10 minutes
+            or time.time() + 60*60 > query.created                      # OR exisiting record expired
             or abs(query.wind_speed - weather["speed"]) > 3             # OR the wind changed speed
             or abs(query.wind_direction - weather["direction"]) > 20    # OR the wind changed direction
         ):
@@ -144,11 +146,14 @@ class WatchDog(threading.Thread):
             print(f"Contours added for fire: {fire.title}")
 
     def run(self):
+
         while True:
             sleep_for = max(0, self.last_checked + self.check_every - time.time())
             print(f"Sleeping for {sleep_for} seconds")
             time.sleep(sleep_for)
             self.last_checked = time.time()
+            self.checked.last_seen = self.last_checked
+            self.checked.save()
 
             data = requests.get(self.url).json()
             num_updated_fires = 0

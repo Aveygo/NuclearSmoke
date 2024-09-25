@@ -3,6 +3,11 @@ from peewee import *
 
 db = SqliteDatabase('main.db')
 
+class Meta(Model):
+    last_seen = IntegerField()
+    class Meta:
+        database = db
+
 class Fire(Model):
     lat = FloatField()
     long = FloatField()
@@ -11,6 +16,7 @@ class Fire(Model):
     published = IntegerField()
     category = CharField()
     updated = IntegerField()
+    created = IntegerField()
     level = CharField()
     size_ha = FloatField() # Fire size in hectares
 
@@ -34,4 +40,4 @@ class Contour(Model):
         database = db
 
 db.connect()
-db.create_tables([Fire, Contour])
+db.create_tables([Fire, Contour, Meta])
