@@ -1,24 +1,26 @@
-import matplotlib.pyplot as plt
-from matplotlib import cm, colors, colorbar
-import numpy as np, sys, time
+"""
+This really should be a class. Just import find_bounds.
+"""
+
+import numpy as np
 
 THRESH = 10
 
-def test_point(x, y, dose_calc):
+def _test_point(x, y, dose_calc):
     z = dose_calc(x, y)
     return np.max(z)
 
-def test_slice(x, y_min, y_max, dose_calc):
+def _test_slice(x, y_min, y_max, dose_calc):
     y = np.arange(y_min, y_max, 0.1)
     z = dose_calc(x, y)
     return np.max(z)
 
-def find_upper(dose_calc):
+def _find_upper(dose_calc):
     # Upwind
     y = 0.1
     last_y = y
     while True:
-        current_score = test_point(0, y, dose_calc)
+        current_score = _test_point(0, y, dose_calc)
         if current_score >= THRESH:
             last_y = y
             y *= 2
@@ -30,12 +32,12 @@ def find_upper(dose_calc):
         if abs(y - last_y) < 0.1:
             return y
 
-def find_lower(dose_calc):
+def _find_lower(dose_calc):
     # downwind
     y = -0.1
     last_y = y
     while True:
-        current_score = test_point(0, y, dose_calc)
+        current_score = _test_point(0, y, dose_calc)
         if current_score >= THRESH * 10:
             last_y = y
             y *= 2
@@ -47,13 +49,13 @@ def find_lower(dose_calc):
         if abs(y - last_y) < 0.01:
             return y
 
-def find_x_max(min_y, max_y, dose_calc):
-    # Much tricker! We need to take an entire verticle slice
+def _find_x_max(min_y, max_y, dose_calc):
+    # Much tricker! We need to take an entire vertical slice
     x = 0.1
     last_x = x
     while True:
         
-        current_score = test_slice(x, min_y, max_y, dose_calc)
+        current_score = _test_slice(x, min_y, max_y, dose_calc)
         if current_score >= THRESH:
             last_x = x
             x *= 2
@@ -66,8 +68,11 @@ def find_x_max(min_y, max_y, dose_calc):
             return x
         
 def find_bounds(dose_calc):
-    min_y, max_y = find_lower(dose_calc), find_upper(dose_calc)
-    max_x = find_x_max(min_y, max_y, dose_calc)
+    """
+    Find the min_x, min_y, max_x and max_y of ContourFinder.dose_calc
+    """
+    min_y, max_y = _find_lower(dose_calc), _find_upper(dose_calc)
+    max_x = _find_x_max(min_y, max_y, dose_calc)
     min_x = -1 * max_x
     return round(min_x, 3), round(min_y, 3), round(max_x, 3), round(max_y, 3)
     

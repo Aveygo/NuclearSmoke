@@ -1,13 +1,12 @@
+import json, time
+
 from watchdog import WatchDog
 from database import Fire
-from fastapi import FastAPI
 
 from fastapi import FastAPI, Request
-import json, time
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
 
 def get_db():
     data = {}

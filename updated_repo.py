@@ -1,5 +1,5 @@
 from main import get_db
-import time, os, json, hashlib, asyncio, gists, shutil
+import time, os, json, hashlib, shutil
 from git import Repo
 from watchdog import WatchDog
 
@@ -28,23 +28,19 @@ def update_json_file():
 
 def commit_and_squash(repo):
     repo.git.add(all=True)
-
     repo.git.commit('-m', 'Update data')
     repo.git.reset('--soft', 'HEAD~1')
     repo.git.commit('--amend', '-m', 'Squash commits')
     repo.git.push('origin', 'main', force=True)
 
 while True:
-    
     while dog.working:
         time.sleep(1)
 
     if dog.last_checked > time.time() - 60 * 30:
-
         repo = pull_repo()
         update_json_file()
-        commit_and_squash(repo)
-                    
+        commit_and_squash(repo)         
     else:
         print("CRITICAL! Watchdog likely dead / overwhelmed!")
 

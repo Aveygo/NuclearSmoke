@@ -2,19 +2,28 @@
 import requests, threading, time, re, json
 from datetime import datetime
 from contour import ContourFinder
-from database import Fire, Contour, Meta
+from database import Fire, Contour
 import getgfs, math
 
 class WatchDog(threading.Thread):
+    """
+    Main class to periodically update database with new fires.
+    Fetches data from RFS / NOAA to feed into ContourFinder.
+
+    Use with WatchDog().start() -> continues in its own thread
+    """
     def __init__(self):
         threading.Thread.__init__(self)
         self.check_every = 60 * 15
         self.last_checked = time.time() - self.check_every - 1
         self.url = "https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json"
         self.f = getgfs.Forecast("0p25")
-        self.working=True
+        self.working = True
 
     def wind(self, u, v):
+        """
+        Convert u/v components into wind speed/direction
+        """
         wind_abs = (u**2 + v**2)**(1/2)
         wind_dir = math.atan2(u/wind_abs, v/wind_abs) 
         wind_dir = wind_dir * 180/math.pi
@@ -48,7 +57,7 @@ class WatchDog(threading.Thread):
 
         shear = abs(wind_abs_10 - wind_abs_100) / 90 # 90 comes from 100m - 10m
 
-        temp = float(res.variables["tmax2m"].data[0][0][0]) - 273.15 # Tempurature is in K
+        temp = float(res.variables["tmax2m"].data[0][0][0]) - 273.15 # Temperature is in K
         
         return {
             "shear": shear,
@@ -71,6 +80,10 @@ class WatchDog(threading.Thread):
         return epoch_time 
     
     def handle_fire(self, geometry, feature, retry=0) -> Fire:
+        """
+        Convert RFS json data into Fire object.
+        Will skip if fire object is in db and is recent enough.
+        """
         if retry > 3:
             return None # Weather failed to fetch 3x
 
@@ -157,7 +170,9 @@ class WatchDog(threading.Thread):
             print(f"Contours added for fire: {fire.title}")
 
     def run(self):
-
+        """
+        Main loop
+        """
         while True:
             self.working=False
             sleep_for = max(0, self.last_checked + self.check_every - time.time())
@@ -172,7 +187,8 @@ class WatchDog(threading.Thread):
                 if feature.get("type", "") == "Feature":
                     for geometry in feature.get("geometry", {}).get("geometries", []):
                         if geometry.get("type", "") == "Point":
-
+                            
+                            # Store RFS data in the db
                             fire:Fire = self.handle_fire(geometry, feature)
                             if not fire is None:
                                 num_updated_fires += 1
