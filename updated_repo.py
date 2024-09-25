@@ -16,10 +16,8 @@ def sha256sum(filename):
 
 def pull_repo():
     if os.path.exists(LOCAL_PATH):
-        repo = Repo(LOCAL_PATH)
-        repo.git.pull()
-    else:
-        repo = Repo.clone_from(REPO_URL, LOCAL_PATH)
+        shutil.rmtree(LOCAL_PATH)
+    repo = Repo.clone_from(REPO_URL, LOCAL_PATH)
     return repo
 
 def update_json_file():
@@ -49,6 +47,8 @@ while True:
                     
     else:
         print("CRITICAL! Watchdog likely dead / overwhelmed!")
+
+    time.sleep(60 * 60)
     
     
 

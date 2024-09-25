@@ -36,7 +36,10 @@ class WatchDog(threading.Thread):
 
         now = datetime.now()
         current_time = f"{now.year}{now.month:02}{now.day:02} {now.hour:02}:{now.minute:02}"
-        res = self.f.get(["ugrd10m", "vgrd10m", "vgrd100m", "ugrd100m", "tmax2m"],current_time, lat, long)
+        try:
+            res = self.f.get(["ugrd10m", "vgrd10m", "vgrd100m", "ugrd100m", "tmax2m"],current_time, lat, long)
+        except:
+            return None
         
         u_10, v_10 = res.variables["ugrd10m"].data[0][0][0], res.variables["vgrd10m"].data[0][0][0]         # Wind at 10m above ground
         u_100, v_100 = res.variables["ugrd100m"].data[0][0][0], res.variables["vgrd100m"].data[0][0][0]     # Wind at 100m above ground
@@ -67,7 +70,10 @@ class WatchDog(threading.Thread):
             
         return epoch_time 
     
-    def handle_fire(self, geometry, feature) -> Fire:
+    def handle_fire(self, geometry, feature, retry=0) -> Fire:
+        if retry > 3:
+            return None # Weather failed to fetch 3x
+
         properties = feature.get("properties", {})
         title = properties.get("title", None)
         if title is None:
@@ -94,6 +100,9 @@ class WatchDog(threading.Thread):
         alert_type = match.group(1) if match else "na"
 
         weather = self.get_weather(coordinates[0], coordinates[1], size_ha)
+        if weather is None:
+            time.sleep(10)
+            return self.handle_fire(geometry, feature, retry+1)
 
         # Check if we need to create or update the fire to likely save time computing contours
         query:Fire|None = Fire.get_or_none(Fire.title == title)

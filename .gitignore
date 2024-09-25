@@ -2,5 +2,6 @@ shell.nix
 *__pycache__*
 main.db
 latest_data.json
+tmp/*
 tmp/
 .vscode
