@@ -1,6 +1,5 @@
 import numpy as np, sys, time, math
-sys.path.append('glasstone/glasstone')
-from fallout import WSEG10 # LINT will complain
+from fallout import WSEG10
 from estimate_bounds import find_bounds
 import numpy as np
 import cv2 as cv2
