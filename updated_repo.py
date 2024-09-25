@@ -38,6 +38,9 @@ def commit_and_squash(repo):
 
 while True:
     
+    while dog.working:
+        time.sleep(1)
+
     if dog.last_checked > time.time() - 60 * 30:
 
         repo = pull_repo()
@@ -47,6 +50,6 @@ while True:
     else:
         print("CRITICAL! Watchdog likely dead / overwhelmed!")
     
-    time.sleep(60 * 60)
+    
 
     
