@@ -8,7 +8,7 @@ import getgfs, math
 class WatchDog(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.check_every = 60 * 5
+        self.check_every = 60 * 15
         self.last_checked = time.time() - self.check_every - 1
         self.url = "https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json"
         self.f = getgfs.Forecast("0p25")
@@ -121,10 +121,12 @@ class WatchDog(threading.Thread):
         
         if (
             updated > query.updated                                     # If RFS updated the fire
-            or time.time() + 60*60 > query.created                      # OR exisiting record expired
+            or time.time() + 60*60 < query.created                      # OR exisiting record expired
             or abs(query.wind_speed - weather["speed"]) > 3             # OR the wind changed speed
             or abs(query.wind_direction - weather["direction"]) > 20    # OR the wind changed direction
         ):
+            print(query.created)
+            print(updated > query.updated,time.time() + 60*60 < query.created,abs(query.wind_speed - weather["speed"]) > 3,  abs(query.wind_direction - weather["direction"]) > 20)
             query.delete_instance()                                     # Delete existing fire and create new one
             return fire
         
@@ -151,8 +153,6 @@ class WatchDog(threading.Thread):
             print(f"Sleeping for {sleep_for} seconds")
             time.sleep(sleep_for)
             self.last_checked = time.time()
-            self.checked.last_seen = self.last_checked
-            self.checked.save()
 
             data = requests.get(self.url).json()
             num_updated_fires = 0
@@ -166,5 +166,7 @@ class WatchDog(threading.Thread):
                                 num_updated_fires += 1
                                 self.add_contour(fire)
 
-                            
-            print(f"Added contours for {num_updated_fires} fires...")
+            if num_updated_fires > 0:                
+                print(f"Added contours for {num_updated_fires} fires...")
+            else:
+                print("Did not update db")

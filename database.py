@@ -3,11 +3,6 @@ from peewee import *
 
 db = SqliteDatabase('main.db')
 
-class Meta(Model):
-    last_seen = IntegerField()
-    class Meta:
-        database = db
-
 class Fire(Model):
     lat = FloatField()
     long = FloatField()
@@ -40,4 +35,4 @@ class Contour(Model):
         database = db
 
 db.connect()
-db.create_tables([Fire, Contour, Meta])
+db.create_tables([Fire, Contour])
