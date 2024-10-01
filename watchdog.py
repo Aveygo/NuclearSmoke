@@ -178,10 +178,16 @@ class WatchDog(threading.Thread):
             sleep_for = max(0, self.last_checked + self.check_every - time.time())
             print(f"Sleeping for {sleep_for} seconds")
             time.sleep(sleep_for)
+
+            # Request may fail if RFS or internet is down
+            try:
+                data = requests.get(self.url).json()
+            except:
+                continue
+
             self.working=True
             self.last_checked = time.time()
-
-            data = requests.get(self.url).json()
+            
             num_updated_fires = 0
             for feature in data.get("features", []):
                 if feature.get("type", "") == "Feature":
