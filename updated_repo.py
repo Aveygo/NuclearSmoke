@@ -44,7 +44,7 @@ while True:
     else:
         print("CRITICAL! Watchdog likely dead / overwhelmed!")
 
-    time.sleep(60 * 60)
+    time.sleep(60 * 5)
     
     
 
