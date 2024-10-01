@@ -187,7 +187,10 @@ class WatchDog(threading.Thread):
 
             self.working=True
             self.last_checked = time.time()
-            
+
+            # Delete old fires (under control for more than 3 days)
+            Fire.delete().where(Fire.updated < time.time() - 60*60*24*3 and Fire.under_control).execute()
+
             num_updated_fires = 0
             for feature in data.get("features", []):
                 if feature.get("type", "") == "Feature":
