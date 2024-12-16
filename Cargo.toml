@@ -1,0 +1,9 @@
+[package]
+name = "nuclearsmoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wseg10 = {path = "lib/wseg10"}
+contours = {path = "lib/contours"}
+charming = {version="0.4.0", features=["ssr"]}

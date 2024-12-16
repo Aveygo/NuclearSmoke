@@ -1,0 +1,9 @@
+[package]
+name = "wseg10"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ndarray = "0.16.1"
+special = "0.11.3"
+statrs = "0.18.0"
