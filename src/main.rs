@@ -33,6 +33,8 @@ fn main() {
 
     let w = WSEG10::new(0.0, 0.0, 0.01, 1.0, 3.0, 90.0, 0.2, 0.0);
 
+    println!("{:?} {:?} {:?} {:?}", w.dose(-1000.0, 0.0), w.dose(1000.0, 0.0), w.dose(0.0, -1000.0), w.dose(0.0, 1000.0));
+
     let mut image = vec![];
     for x in -1000..1000 {
         let mut row = vec![];
