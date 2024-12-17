@@ -47,7 +47,7 @@ fn main() {
     save_grayscale_image(image, 2000, 2000, "plot.png");
 
 
-    let contour = find_contours(10.0, &|x:f64, y:f64| w.dose(x, y));
+    let contour = find_contours(100.0, &|x:f64, y:f64| w.dose(x, y));
     println!("{:?}", contour);
     println!("Hello, world!");
 
