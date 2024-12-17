@@ -7,3 +7,4 @@ edition = "2021"
 wseg10 = {path = "lib/wseg10"}
 contours = {path = "lib/contours"}
 charming = {version="0.4.0", features=["ssr"]}
+image = "0.25.5"

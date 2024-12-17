@@ -21,7 +21,7 @@ impl Point {
 
 }
 
-fn ray(mut p1:Point, mut p2:Point, min_step:f64, iter:usize, func: &dyn Fn(&Point) -> f64) -> Point {
+fn ray(mut p1:Point, dx:f64, dy:f64, threshold: f64, iter:usize, func: &dyn Fn(&Point) -> f64) -> Point {
     /*
         The ray travels in one direction to find function contour 
      */
@@ -30,56 +30,48 @@ fn ray(mut p1:Point, mut p2:Point, min_step:f64, iter:usize, func: &dyn Fn(&Poin
 
     for i in 0..iter {
 
-        if p1.distance(&p2) < min_step {
-            return p1
+        if (func(&p1) - threshold).abs() < threshold {
+            return p1;
         }
 
-        let m = (func(&p2) - func(&p1)) / (origin.distance(&p2) - origin.distance(&p1));
+        let p2 = Point::new(p1.x+dx, p1.x+dy);
+        let d = (func(&p1) - func(&p2)) / (dx.powf(2.0) + dy.powf(2.0)).sqrt();
+        let q = origin.distance(&p1) - (func(&p1) / d);
+
+        println!("{:?}, {:?}", q, d);
         
 
-
-        let b = func(&p2) - m * (origin.distance(&p2));
-        let q = -b/m; // q is the distance to the origin
-        println!("{:?} {:?} {:?} {:?}", p1.distance(&p2), m, b, q);
-
-        let m = p2.y / p2.x;
+        let m = dy / dx;
         let q = Point::new(
             q * m.atan().cos(),
             q * m.atan().sin(),
         );
 
-        let p2_clone = p2.clone();
-        p2 = q;
-        p1 = p2_clone;
+        p1 = q;
+
     }
 
-    return p2;
+    return p1;
 }
 
 
-pub fn find_contours(threshold: f64, n_rays:usize, func: &dyn Fn(f64, f64) -> f64) -> Vec<Point> {
+pub fn find_contours(threshold: f64, func: &dyn Fn(f64, f64) -> f64) -> Vec<Point> {
     /*
         func is assumed to be a vertically symmetrical ~ellipsoid blur centered around (0, 0)
      */
+
+    
     let nfunc = |point:&Point| (func(point.x, point.y)-threshold).abs();
 
     let mut contour: Vec<Point> = vec![];
 
-    for degree in (-90..90).step_by(180 / n_rays) {
-        let p1 = Point::new(0.0, 0.0);
-        let p2 = Point::new(
-            (degree as f64 * PI / 180.0).cos(),
-            (degree as f64 * PI / 180.0).sin()
-        );
+    for degree in (-90..90).step_by(180 / 100) {
+        
+        let dx = (degree as f64 * PI / 180.0).cos();
+        let dy = (degree as f64 * PI / 180.0).sin();
 
-        println!("{:?}, {:?}, {:?}", degree, degree as f64 * PI / 180.0, p2);
-
-        let found = ray(p1, p2, 0.5, 50, &nfunc);
+        let found = ray(Point::new(0.0, 0.0), dx, dy, 1.0, 500, &nfunc);
         contour.push(found);
-        contour.push(Point::new(
-            -1.0 * found.x,
-            found.y
-        ));
     }
 
     contour
