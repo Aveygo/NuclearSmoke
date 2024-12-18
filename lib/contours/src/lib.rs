@@ -6,12 +6,6 @@ pub struct Point {
     pub y: f64
 }
 
-impl Point {
-    fn new(x:f64, y:f64) -> Self {
-        Self { x, y }
-    }
-}
-
 fn ray(center:Point, direction:f64, tolerance: f64, iter:usize, func: &dyn Fn(&Point) -> f64) -> Option<Point> {
     /*
         Casts a ray from p1 into direction (dx, dy) to estimate where func(x, y) = 0
@@ -24,9 +18,9 @@ fn ray(center:Point, direction:f64, tolerance: f64, iter:usize, func: &dyn Fn(&P
         Can be optimized by somehow matching the step size to the gradient of ray position? Newtons method?
      */
     
-    let mut step_size = 0.1;         // Initial step size of the ray
-    let mut state = false;          // false -> doubling, true -> halving
-    let mut p1 = center.clone();   // Initial ray position
+    let mut step_size    = 0.1;              // Initial step size of the ray
+    let mut state       = false;            // false -> doubling, true -> halving
+    let mut p1         = center.clone();   // Initial ray position
 
     // Convert the direction into meaningful changes in x/y for the ray
     let dx = (direction * PI / 180.0).cos();
@@ -63,7 +57,7 @@ pub fn find_contours(num_points: usize, threshold: f64, func: &dyn Fn(f64, f64) 
 
     let mut contours: Vec<Point> = vec![];
     let tol = 1.0;
-    let iter = 32; // Arbitrary, larger than earth if one unit of x/y ~= 1km
+    let iter = 32; // Arbitrary, larger than earth given one unit of x/y ~= 1km
 
     // Because ~highest should be at center, if lower, quit early to save compute
     let center = Point{x: 0.0, y: 0.0};
