@@ -54,7 +54,7 @@ The WSEG10 model is translated from [GOFAI](https://gist.github.com/GOFAI/5e22c1
 
 ## Self Hosting
 
-For offline use, we provide a small binary file to calculate the bounding boxes of the fallout forecast. 
+For offline use, we provide a small [binary file](https://github.com/Aveygo/NuclearSmoke/releases) to calculate the bounding boxes of the fallout forecast. 
 
 ```
 ./nuclearsmoke --fire-mt 1.0 --wind-speed 10.0 --wind-shear 0.1 --threshold 100
