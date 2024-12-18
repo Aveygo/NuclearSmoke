@@ -1,25 +1,38 @@
- fn index_of_min(v: &[f64]) -> Option<usize> {
-    v.iter()
-        .enumerate()
-        .fold(None, |min, (i, &val)| match min {
-            Some((min_idx, min_val)) if min_val <= val => Some((min_idx, min_val)),
-            _ => Some((i, val)),
-        })
-        .map(|(min_idx, _)| min_idx)
+use clap::Parser;
+use wseg10::WSEG10;
+use contours::{find_contours, Point};
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+
+    #[arg(long)]
+    fire_mt: f64,
+
+    #[arg(long)]
+    wind_speed: f64,
+
+    #[arg(long)]
+    wind_shear: f64,
+    
+    #[arg(long)]
+    threshold: f64,
+
 }
 
 fn main() {
-    // https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json
-    // https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,wind_speed_10m,wind_speed_120m,wind_direction_10m,wind_direction_120m&forecast_days=1
+    let args = Args::parse();
 
-    // grads_size = 129, grads_step= 3hr
-    // 
+    let w: WSEG10 = WSEG10::new(args.fire_mt, args.wind_speed, args.wind_shear);
+    let contour = find_contours(100, args.threshold, &|x:f64, y:f64| w.dose(x, y));
 
-    let url = "";
+    let (mut max_x, mut max_y) = (0.0, 0.0);
 
+    for point in contour {
+        if point.x > max_x { max_x = point.x;}
 
+        if point.y > max_y { max_y = point.y }
+    }
 
-
-
-
+    println!("{:.2},{:.2}", max_x, max_y);
 }
