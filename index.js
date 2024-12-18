@@ -1,7 +1,7 @@
 /*
 
   If you are looking at this, then you probably want to know how to calculate the smoke contours yourself.
-  Unfortunately, there is no API here, and is instead all calculated using WASM with the "smoke" function.
+  Unfortunately, there is no easy to use API here, and is instead all calculated using WASM with the "smoke" function.
 
   Please see the repo for more details: https://github.com/Aveygo/NuclearSmoke
 
@@ -9,14 +9,38 @@
 
 import init, { smoke } from "./pkg/nuclearsmoke.js";
 
-function panic() {
-  alert("Panic state!")
-}
-
-
 async function fetch_json(url) {
+  /*
+    Light wrapper for boilerplate stuff TODO errors
+  */
   let report = await fetch(url)
   return await report.json()
+}
+
+async function cached_fetch_json(url) {
+  /*
+    Mainly for dev purposes to limit number of weather requests
+  */
+
+  let ttl = 60 * 15 * 1000;
+  let data = localStorage.getItem(url);
+
+  // Check if already in cache
+  if (data) { 
+    data = JSON.parse(data);
+    
+    // Check if too old
+    if (Date.now() < data.fetched + ttl) {
+      console.log("Returning cache")
+      return data.data
+    }
+  }
+
+  // Set cache and return results
+  console.log("Refreshing/building cache")
+  data = {data: await fetch_json(url), fetched: Date.now()}
+  localStorage.setItem(url, JSON.stringify(data));
+  return data.data;
 }
 
 async function cached_contours() {
@@ -79,7 +103,7 @@ async function handle_fire(fire) {
     let lat = maybe_point.coordinates[1]
     let lon = maybe_point.coordinates[0]
 
-    let weather = await fetch_json("https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&hourly=temperature_2m,wind_speed_10m,wind_speed_120m,wind_direction_10m,wind_direction_120m&forecast_days=1")
+    let weather = await cached_fetch_json("https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&hourly=temperature_2m,wind_speed_10m,wind_speed_120m,wind_direction_10m,wind_direction_120m&forecast_days=1")
 
     // Get current hour as weather returns hourly data
     const d = new Date();
@@ -93,8 +117,8 @@ async function handle_fire(fire) {
 
     // Contour data
     let result_10   = JSON.parse(smoke(lat, lon, hectares/1000*temp, wind/5, wind_direction, shear*5, 10));
-    let result_100  = JSON.parse(smoke(lat, lon, hectares/1000*temp, wind/5, wind_direction, shear*5, 100));
-    let result_1000 = JSON.parse(smoke(lat, lon, hectares/1000*temp, wind/5, wind_direction, shear*5, 1000));
+    let result_100  = JSON.parse(smoke(lat, lon, hectares/1000*temp, wind/5, wind_direction, shear*5, 1000));
+    let result_1000 = JSON.parse(smoke(lat, lon, hectares/1000*temp, wind/5, wind_direction, shear*5, 100000));
     
     // Return found data
     return {"fire": fire, "contours": [result_10, result_100, result_1000]}
@@ -104,7 +128,7 @@ async function handle_fire(fire) {
 async function build_contours() {
   
   // Fetch the fires-near-me data
-  let fires = await fetch_json("https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json");
+  let fires = await cached_fetch_json("https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json");
 
   // Async each fire to spread out weather requests
   let jobs = [];
@@ -125,15 +149,20 @@ async function build_contours() {
 } 
 
 async function main() {
-  await init();
-  var map = L.map('map').setView([ -33.8521, 151.1917], 10); // Sydney
+  
+  // Init wasm object
+  await init(); 
 
+  // Set view onto Sydney
+  var map = L.map('map').setView([ -33.8521, 151.1917], 10); 
+
+  // Initialize Leaflet 
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <span>|</span> Data from <a href="https://www.rfs.nsw.gov.au/fire-information/fires-near-me">RFS</a>'
   }).addTo(map);
 
-  // Add each contour for each "risk level"
+  // Add each contour. Changed colors for each "risk level"
   let contours = await cached_contours()
   contours.forEach(function (contours, index) {
     L.polygon(contours.contours[0].map(point => [point.x, point.y]), {color: 'green'}).addTo(map)

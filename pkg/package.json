@@ -1,0 +1,15 @@
+{
+  "name": "nuclearsmoke",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "nuclearsmoke_bg.wasm",
+    "nuclearsmoke.js",
+    "nuclearsmoke.d.ts"
+  ],
+  "main": "nuclearsmoke.js",
+  "types": "nuclearsmoke.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
