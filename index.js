@@ -167,6 +167,25 @@ function get_position(fire) {
   return null
 }
 
+function get_age(fire) {
+  let date = null;
+
+  if (fire.properties.pubDate) { // NSW
+    const [day, month, year, time] = fire.properties.pubDate.split(/[\/\s]/);
+    date = new Date(`${year}-${month}-${day}T${time}`);
+  }
+
+  if (fire.properties.updated) { // VIC
+    date = new Date(fire.properties.updated);
+  } 
+
+  if (date != null) {
+    return Math.floor((new Date() - date) / 1000);
+  }
+
+  return null
+}
+
 async function handle_fire(fire) {
   /*
     Asynchronously fetch weather data & calculate contours 
@@ -174,8 +193,9 @@ async function handle_fire(fire) {
   
   let hectares = get_size(fire);
   let center = get_position(fire);
+  let age = get_age(fire);
 
-  if ((center!=null) && hectares > 0) {
+  if ((center!=null) && hectares > 0 && (age != null) && (age < 60 * 60 * 24 * 1)) {
 
     // Assumed as center of fire
     let lat = center[1]
@@ -194,9 +214,9 @@ async function handle_fire(fire) {
     let temp = weather.hourly.temperature_2m[hour]
 
     // Contour data
-    let result_10   = JSON.parse(smoke(lat, lon, hectares/1000*temp, wind/5, wind_direction, shear*5, 10));
-    let result_100  = JSON.parse(smoke(lat, lon, hectares/1000*temp, wind/5, wind_direction, shear*5, 1000));
-    let result_1000 = JSON.parse(smoke(lat, lon, hectares/1000*temp, wind/5, wind_direction, shear*5, 100000));
+    let result_10   = JSON.parse(smoke(lat, lon, hectares/10000*temp, wind/5, wind_direction, shear*10, 10));
+    let result_100  = JSON.parse(smoke(lat, lon, hectares/10000*temp, wind/5, wind_direction, shear*10, 1000));
+    let result_1000 = JSON.parse(smoke(lat, lon, hectares/10000*temp, wind/5, wind_direction, shear*10, 100000));
     
     // Return found data
     return {"fire": fire, "contours": [result_10, result_100, result_1000]}
