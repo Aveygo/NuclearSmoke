@@ -144,7 +144,7 @@ function get_size(fire) {
 function get_position(fire) {
 
   // Could be given exact point immediately
-  if (fire.geometry.geometries !== null) {
+  if (typeof fire.geometry.geometries !== "undefined") {
     let maybe_point = fire.geometry.geometries.at(-1)
     if (maybe_point.type == "Point") {
       return maybe_point.coordinates
