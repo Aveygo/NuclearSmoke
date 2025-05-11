@@ -224,30 +224,49 @@ async function handle_fire(fire) {
 }
 
 async function build_contours() {
-  
-  // Fetch NSW fires
-  let fires = (await cached_fetch_json("https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json", 15 * 60 * 1000)).features;
+  let fires = [];
 
-  // Fetch VIV fires
-  fires.push(...(await cached_fetch_json("https://www.emergency.vic.gov.au/public/impact-areas-geojson.json", 15 * 60 * 1000)).features);
+  // Fetch NSW fires
+  try {
+    const nswFires = await cached_fetch_json(
+      "https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json",
+      15 * 60 * 1000
+    );
+    fires.push(...nswFires.features);
+  } catch (error) {
+    console.warn("Failed to fetch NSW fires due to CORS or other error:", error);
+  }
+
+  // Fetch VIC fires
+  try {
+    const vicFires = await cached_fetch_json(
+      "https://www.emergency.vic.gov.au/public/impact-areas-geojson.json",
+      15 * 60 * 1000
+    );
+    fires.push(...vicFires.features);
+  } catch (error) {
+    console.warn("Failed to fetch VIC fires due to CORS or other error:", error);
+  }
 
   // Async each fire to spread out weather requests
   let jobs = [];
-  for (let i=0; i<fires.length;i++) {
+  for (let i = 0; i < fires.length; i++) {
     jobs.push(handle_fire(fires[i]));
   }
 
   // Wait for all the jobs to be completed
   let contours = [];
   await Promise.all(jobs).then((values) => {
-    for (let i=0; i<values.length; i++) {    
-      if (values[i]) { contours.push(values[i]) }
+    for (let i = 0; i < values.length; i++) {
+      if (values[i]) {
+        contours.push(values[i]);
+      }
     }
   });
 
   // Return found contours for each fire
-  return contours
-} 
+  return contours;
+}
 
 async function main() {
   
