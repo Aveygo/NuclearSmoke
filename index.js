@@ -11,11 +11,21 @@ import init, { smoke } from "./pkg/nuclearsmoke.js";
 
 async function fetch_json(url) {
   /*
-    Light wrapper for boilerplate stuff TODO errors
+    Light wrapper for boilerplate stuff
+    Returns an empty object on failure
   */
-  let report = await fetch(url)
-  return await report.json()
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`)
+    }
+    return await response.json()
+  } catch (error) {
+    console.error(`Failed to fetch or parse JSON from ${url}:`, error)
+    return {}
+  }
 }
+
 
 async function cached_fetch_json(url, ttl) {
   /*
