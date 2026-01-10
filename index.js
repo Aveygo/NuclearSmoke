@@ -72,7 +72,8 @@ async function cached_contours() {
     contours = JSON.parse(contours);
     
     // Check if too old
-    if (Date.now() < contours.fetched + ttl) {
+    console.log(window.location.port)
+    if (Date.now() < contours.fetched + ttl && contours.data.length > 0 && window.location.port == 443) {
       console.log("Returning cache")
       return contours.data
     }
@@ -154,15 +155,15 @@ function get_size(fire) {
 function get_position(fire) {
 
   // Could be given exact point immediately
-  if (typeof fire.geometry.geometries !== "undefined") {
-    let maybe_point = fire.geometry.geometries.at(-1)
-    if (maybe_point.type == "Point") {
-      return maybe_point.coordinates
+  if (fire.geometry.geometries != null) {
+    for (const geo of fire.geometry.geometries) {
+      if (geo.type == "Point") {
+        return geo.coordinates
+      }
     }
   }
 
   // Estimate based on first given bounds
-  
   if (fire.geometry.type == "Polygon") {
     let bounds = bounding_box(fire.geometry.coordinates[0]);
 
@@ -205,7 +206,13 @@ async function handle_fire(fire) {
   let center = get_position(fire);
   let age = get_age(fire);
 
-  if ((center!=null) && hectares > 0 && (age != null) && (age < 60 * 60 * 24 * 1)) {
+  if (JSON.stringify(fire).includes("KURINGAI CHASE RD, MOUNT COLAH")){
+    console.log(fire)    
+    console.log("Found fire:", hectares, center, age)
+  }
+  
+
+  if ((center!=null) && Number.isInteger(hectares) &&hectares > 0 && Number.isInteger(age) && (age < 60 * 60 * 24 * 1)) {
 
     // Assumed as center of fire
     let lat = center[1]
@@ -239,12 +246,14 @@ async function build_contours() {
   // Fetch NSW fires
   try {
     const nswFires = await cached_fetch_json(
-      "https://prod.dataportal.rfs.nsw.gov.au/majorIncidents.json",
+      "https://www.rfs.nsw.gov.au/feeds/combinedMajorIncidents.json",
       15 * 60 * 1000
     );
+    console.log("Found", nswFires.features.length, "in NSW")
     fires.push(...nswFires.features);
   } catch (error) {
     console.warn("Failed to fetch NSW fires due to CORS or other error:", error);
+    location.href = "panic.html";
   }
 
   // Fetch VIC fires
@@ -253,9 +262,11 @@ async function build_contours() {
       "https://www.emergency.vic.gov.au/public/impact-areas-geojson.json",
       15 * 60 * 1000
     );
+    console.log("Found", vicFires.features.length, "in VIC")
     fires.push(...vicFires.features);
   } catch (error) {
     console.warn("Failed to fetch VIC fires due to CORS or other error:", error);
+    location.href = "panic.html";
   }
 
   // Async each fire to spread out weather requests
